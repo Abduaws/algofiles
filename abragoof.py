@@ -9,7 +9,7 @@ def solve(level_list, last_element_index):
     for i in range(0, last_element_index):
         level_list.insert(last_element_index+1, [])
         index = len(level_list[i]) - 1
-        for j in  range(0, len(level_list[i])):
+        for j in range(0, len(level_list[i])):
             level_list[last_element_index+1].append(level_list[i].pop(index-j))
     temp_list = []
     for element in level_list:
