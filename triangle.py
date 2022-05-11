@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import copy
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -17,7 +17,7 @@ class Ui_MainWindow(object):
         MainWindow.resize(1098, 837)
         self.timer = QtCore.QTimer(MainWindow)
         self.timer.setInterval(1000)
-        self.timer.timeout.connect(self.stepbystep)
+        self.timer.timeout.connect(self.draw_steps)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.inputnodes = QtWidgets.QLineEdit(self.centralwidget)
@@ -47,8 +47,6 @@ class Ui_MainWindow(object):
         self.reset.clicked.connect(self.stepbystep)
         self.add.clicked.connect(self.draw)
         self.level_list = []
-        self.start = 0
-        self.end = 9999999
         self.steps = 0
         self.shortest_steps = []
         self.show_index = 0
@@ -65,14 +63,27 @@ class Ui_MainWindow(object):
         self.steps = 0
         self.plainTextEdit.clear()
         self.level_list = list()
-        self.start = 0
-        self.end = 9999999
+        self.shortest_steps = []
+        self.show_index = 0
         if self.inputnodes.text() == "": return
         n = int(self.inputnodes.text())
         for i in range(1, n + 1):
             self.level_list.append(["*"]*i)
             n -= 1
         self.printt()
+    def draw_steps(self):
+        if self.show_index == len(self.shortest_steps):
+            self.timer.stop()
+            self.popup()
+            return
+        text = ""
+        for level in self.shortest_steps[self.show_index]:
+            for element in level:
+                text += element
+            text += "\n"
+        print(text)
+        self.plainTextEdit.setPlainText(text)
+        self.show_index += 1
     def errpopup(self, msg):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Error")
@@ -84,42 +95,19 @@ class Ui_MainWindow(object):
         if not self.level_list: self.errpopup("Please Draw First!")
         if self.inputnodes.text() == "": return
         if self.plainTextEdit.toPlainText() == "": self.errpopup("Please Draw First!")
-        if self.end == 9999999:
-            self.end = len(self.level_list)-1
-            self.timer.start()
-        if len(self.level_list) % 2 != 0:
-            if self.start == self.end:
-                self.timer.stop()
-                self.popup()
-                return
-            start_count = len(self.level_list[self.start])
-            while len(self.level_list[self.start]) != len(self.level_list[self.end]):
+        curr_lvl = 0
+        end_cont = self.level_list[-1]
+        while self.level_list[0] != end_cont:
+            self.level_list.append([])
+            while len(self.level_list[-1]) != len(self.level_list[-2])-1:
+                if len(self.level_list[curr_lvl]) == 0 :curr_lvl+=1
+                self.level_list[-1].append("*")
+                self.level_list[curr_lvl].pop(0)
                 self.steps += 1
-                self.level_list[self.start].append("*")
-                self.printt()
-            while len(self.level_list[self.end]) != start_count:
-                self.level_list[self.end].remove("*")
-                #self.steps += 1
-                self.printt()
-            self.start += 1
-            self.end -= 1
-        else:
-            if self.end < self.start:
-                self.timer.stop()
-                self.popup()
-                return
-            start_count = len(self.level_list[self.start])
-            while len(self.level_list[self.start]) != len(self.level_list[self.end]):
-                self.level_list[self.start].append("*")
-                self.steps += 1
-                self.printt()
-            while len(self.level_list[self.end]) != start_count:
-                self.level_list[self.end].remove("*")
-                self.shortest_steps.append(self.level_list)
-                #self.steps += 1
-                self.printt()
-            self.start += 1
-            self.end -= 1
+                if self.level_list[0] == [] : self.level_list.pop(0)
+                self.shortest_steps.append(copy.deepcopy(self.level_list))
+        self.timer.start()
+        return
     def popup(self):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Done")
@@ -128,9 +116,9 @@ class Ui_MainWindow(object):
         msg.setIcon(QtWidgets.QMessageBox.Information)
         msg.setInformativeText("Problem was solved in "+str(self.steps)+" steps!")
         x = msg.exec_()
-        self.start = 0
-        self.end = 9999999
         self.steps = 0
+        self.show_index = 0
+        self.shortest_steps = []
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Problem Solver"))
