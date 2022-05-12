@@ -109,10 +109,16 @@ class Ui_MainWindow(object):
         msg.setIcon(QtWidgets.QMessageBox.Critical)
         x = msg.exec_()
     def stepbystep(self):
+        flag = True
+        indexes = [index for index, value in enumerate(self.arr) if value == "♚"]
+        for indic in range(1, len(indexes)):
+            if abs(indexes[0] - indexes[indic]) % 2 != 0:
+                flag = False
+            if flag:
+                print("failed")
         if self.arr.count("♚") == 1:
             f = open("res.txt", 'a')
             f.write(f"{self.first},{self.second}   |   Steps: {self.steps}\n")
-            #print(self.shortest_steps)
             self.timer.start()
             return
         choice = []
@@ -126,11 +132,13 @@ class Ui_MainWindow(object):
                 if index+2 <= len(self.arr)-1:
                     if self.arr[index+2] == "♚" and self.arr[index+1] == "♚":
                         choice.append((index+2, index+1, index, abs(int((len(self.arr)-1)/2)-index-2)))
+        print("Current Choices: ", choice)
         if choice:
-            #print(choice)
-            min_abs = 99999
             curr_min = tuple()
+            mid = int((len(self.arr)-1)/2)
+            min_abs = 9999999
             for option in choice:
+                print("Current Choice: ", option)
                 if self.arr.count("♚") > 2:
                     indexes = [index for index, value in enumerate(self.arr) if value == "♚" and index != option[0] and index != option[1]]
                     flag = True
@@ -138,58 +146,20 @@ class Ui_MainWindow(object):
                         if abs(option[2] - indic) % 2 != 0:
                             flag = False
                     if flag: continue
-                if option[3] == min_abs:
-                    left = tuple()
-                    right = tuple()
-                    if option[0] < option[2]:
-                        left = option
-                        right = curr_min
-                    else:
-                        left = curr_min
-                        right = option
-                    if left[0] > len(self.arr) - 1 - right[0]:
-                        curr_min = left
-                    else:
-                        curr_min = right
-                elif option[3] < min_abs:
-                    min_abs = option[3]
+                diff = abs(option[0]-mid)
+                if diff < min_abs :
+                    min_abs = diff
                     curr_min = option
-            #print("Minimum chosen: ",curr_min)
-            if curr_min:
-                self.arr[curr_min[0]] = "-"
-                self.arr[curr_min[1]] = "-"
-                self.arr[curr_min[2]] = "♚"
-                self.steps += 1
-                self.shortest_steps.append(copy.deepcopy(self.arr))
-                #print("arr after jump: ",self.arr)
-                self.stepbystep()
-        #print("skipped")
-        for index in range(0, len(self.arr)):
-            if index == len(self.arr)-2:
-                break
-            if self.arr.count("♚") == 1:
-                return
-            if self.arr[index] == "♚" and self.arr[index+2] == "-":
-                self.arr[index] = "-"
-                self.arr[index+1] = "-"
-                self.arr[index+2] = "♚"
-                self.steps += 1
-                self.shortest_steps.append(copy.deepcopy(self.arr))
-                #print("arr after jump: ", self.arr)
-                self.stepbystep()
-        for index, e in reversed(list(enumerate(self.arr))):
-            if index == 1:
-                break
-            if self.arr.count("♚") == 1:
-                return
-            if self.arr[index] == "♚" and self.arr[index-2] == "-" and self.arr[index-1] == "♚":
-                self.arr[index] = "-"
-                self.arr[index-1] = "-"
-                self.arr[index-2] = "♚"
-                self.steps += 1
-                self.shortest_steps.append(copy.deepcopy(self.arr))
-                #print("arr after jump: ", self.arr)
-                self.stepbystep()
+                print("Current Min: ", curr_min)
+            if not curr_min: curr_min = choice[0]
+            self.arr[curr_min[0]] = "-"
+            self.arr[curr_min[1]] = "-"
+            self.arr[curr_min[2]] = "♚"
+            self.steps += 1
+            self.shortest_steps.append(copy.deepcopy(self.arr))
+            print("In loop: ", self.arr)
+            self.stepbystep()
+
     def popup(self):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Done")
