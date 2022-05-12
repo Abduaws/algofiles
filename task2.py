@@ -159,7 +159,6 @@ class Ui_MainWindow(object):
             self.shortest_steps.append(copy.deepcopy(self.arr))
             print("In loop: ", self.arr)
             self.stepbystep()
-
     def popup(self):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Done")
